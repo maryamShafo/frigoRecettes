@@ -32,15 +32,14 @@ database.connect((err) => {
   console.log("Connection established sucessfully");
 });
 
-
 // Route de test pour vérifier la connexion et faire une requête simple
 // Définition de la route HTTP GET pour l'URL "/produits"
 app.get("/produits", (req, res) => {
-   // Requête SQL pour récupérer toutes les lignes de la table "produits"
+  // Requête SQL pour récupérer toutes les lignes de la table "produits"
   const connexion = "SELECT * FROM produits";
   database.query(connexion, (err, results) => {
     if (err) {
-       // Si une erreur survient lors de l'exécution de la requête
+      // Si une erreur survient lors de l'exécution de la requête
       console.error("Erreur lors de l'exécution de la requête:", err);
       // Envoie une réponse HTTP avec un code 500 (erreur serveur) et un message d'erreur
       res.status(500).send("Erreur lors de l'exécution de la requête");
@@ -62,40 +61,77 @@ app.get("/recettes", (req, res) => {
     }
   });
 });
-
-// Route pour ajouter un produit
-app.post("/produits", (req, res) => {
+/*
+//rout pour ajouter un produits test
+app.post("/ajouterproduit", (req, res) => {
   const { nom, quantite, date_expiration, categorie } = req.body;
+
+  // Requête préparée avec valeurs paramétrées
   const ajoutProduit = `
     INSERT INTO produits (nom, quantite, date_expiration, categorie)
-    VALUES ('${nom}', ${quantite}, ${date_expiration}, '${categorie}')
+    ('${nom}', ${quantite}, ${date_expiration}, '${categorie}')
   `;
+
+  // Exécuter la requête en passant les valeurs dans un tableau
   database.query(ajoutProduit, (err, result) => {
     if (err) {
       console.error("Erreur lors de l'ajout du produit:", err);
+      res.status(500).send("Erreur lors de l'ajout du produit.");
     } else {
-      res.json("Produit ajouté avec succès !", result);
+      res.json({ message: "Produit ajouté avec succès !", result });
     }
   });
 });
-// Route pour ajouter une recette 
-app.post("/recettes", (req, res) => {
-  const { nom, instructions, difficulte, temps_preparation, ingredients } = req.body;
-  console.log(nom);
-  
-  const ajoutRecette = `
-    INSERT INTO recettes (nom, instructions, difficulte, temps_preparation, ingredients)
-    VALUES ('${nom}', '${instructions}', '${difficulte}', ${temps_preparation}, '${ingredients}')
+*/
+// Route pour ajouter un produit
+app.post('/ajouterproduit', (req, res) => {
+  const { nom, Quantite, date_expiration, categorie } = req.body;
+  console.log(nom,Quantite, date_expiration, categorie);
+    // const sql =`INSERT INTO produits (nom, quantite, date_expiration, categorie) VALUES (?, ?, ?, ?)`
+    // db.query(sql, [nom, quantity, datedexpi, category],
+    database.query(`INSERT INTO produits (nom, quantite, date_expiration, categorie) VALUES ('${nom}', '${Quantite}', '${date_expiration}', '${categorie}')`, 
+      function (err, results, fields) {
+        console.log("Resultats", results, err, fields);
+        res.send('Post request to ajouter produit');
+      }
+    );
+});
+
+// Route pour ajouter une recette
+app.post("/ajouterrecette", (req, res) => {
+  const { nom, instructions, difficulte, temps_preparation, ingredients } =
+    req.body;
+    database.query(`INSERT INTO recettes (nom, instructions, difficulte, temps_preparation, ingredients ) 
+      VALUES ('${nom}', '${instructions}', '${difficulte}', '${temps_preparation}', '${ingredients}')`, 
+
+      function (err, results, fields) {
+        console.log("Resultats", results, err, fields);
+        res.send('Post request to ajouter recette');
+      }
+    );
+});
+
+//route pour recuperer les recettes disponibles
+app.get("/recettes-disponibles", (req, res) => {
+  const sqlQuery = `
+    SELECT r.*
+    FROM recettes AS r
+    WHERE EXISTS (
+    SELECT 1
+    FROM produits AS p
+    WHERE r.ingredients LIKE CONCAT('%', p.nom, '%')
+    );
   `;
-  database.query(ajoutRecette, (err, result) => {
+  database.query(sqlQuery, (err, result) => {
     if (err) {
-      console.error("Erreur lors de l'ajout de la recette:", err);
-      res.status(500).send("Erreur lors de l'ajout de la recette.");
+      console.error("Erreur lors de la récupération des recettes disponibles:",err);
+      res.status(500).send("Erreur lors de la récupération des recettes disponibles.");
     } else {
-      res.json(result);
+      res.json(result); // Renvoie les recettes réalisables en JSON
     }
   });
 });
+
 // routes pour teste la connexion la connexion sans endpoint
 /*const connexion = "SELECT * FROM produits";
 database.query(connexion, (err, results) => {

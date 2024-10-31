@@ -21,8 +21,8 @@ const Produits = () => {
       console.error(error);
     }
   }
-  // Utiliser useEffect pour appeler fetchProduits lors du montage du composant
 
+  // Utiliser useEffect pour appeler fetchProduits lors du montage du composant
   useEffect(() => {
     getProduits(); // Appel de la fonction pour récupérer les produits
   }, []); // Le tableau vide indique que cet effet ne doit s'exécuter qu'une seule fois
